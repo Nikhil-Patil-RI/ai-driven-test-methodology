@@ -89,19 +89,64 @@ def test_function(self, mock_get_db, service, mock_context):
     assert response.success is True
 ```
 
-### 2.3 Test Organization & Naming Conventions
+### 2.3 Test Organization & Directory Structure
+
+**2.3.1 Mirror App Directory Structure**
+Organize tests to mirror the app/ directory structure for better maintainability:
+
+```
+tests/
+├── api/                    # API endpoint tests (if app/api/ exists)
+├── app/                    # Main application tests (for app/main.py)
+├── core/                   # Core functionality tests (if app/core/ exists)
+├── db/                     # Database tests (if app/db/ exists)
+├── features/               # Feature-specific tests
+├── helpers/                # Helper function tests (if app/helpers/ exists)
+├── integration/            # Integration tests
+├── migrations/             # Migration tests (if needed)
+├── models/                 # Model tests (if app/models/ exists)
+├── services/               # Service layer tests (if app/services/ exists)
+└── utils/                  # Utility tests (if app/utils/ exists)
+    ├── cache/              # Cache utility tests
+    ├── constants/          # Constants tests
+    ├── helpers/            # Helper utility tests
+    └── kafka/              # Kafka utility tests
+```
+
+**2.3.2 Naming Conventions**
 ```python
-# File structure: tests/services/test_{service_name}.py
-# Class structure: TestServiceNameService
+# File structure: tests/{app_directory}/test_{module_name}.py
+# Class structure: Test{ModuleName}Service or Test{ModuleName}
 # Method naming: test_{method_name}_{scenario}
 
+# Example for app/services/agent_functions.py:
+# tests/services/test_agent_functions.py
 class TestAgentFunctionsService:
     def test_create_agent_success(self):           # Happy path
     def test_create_agent_database_error(self):   # Error handling
     def test_create_agent_invalid_input(self):    # Validation
     def test_create_agent_empty_fields(self):     # Edge cases
     def test_create_agent_unauthorized(self):     # Permission tests
+
+# Example for app/models/agent.py:
+# tests/models/test_agent.py
+class TestAgentModel:
+    def test_agent_creation(self):
+    def test_agent_validation(self):
+    def test_agent_relationships(self):
+
+# Example for app/utils/kafka/kafka_service.py:
+# tests/utils/kafka/test_kafka_service.py
+class TestKafkaService:
+    def test_send_message_success(self):
+    def test_send_message_connection_error(self):
 ```
+
+**2.3.3 Directory Creation Guidelines**
+- Only create test directories that correspond to existing app/ directories
+- For projects with excluded directories (scripts, grpc, migrations), skip creating corresponding test directories
+- Use `__init__.py` files in all test directories for proper Python package structure
+- Group related functionality in feature-specific directories when appropriate
 
 ### 2.4 Fixture Design Patterns
 ```python
@@ -282,10 +327,18 @@ poetry run pytest tests/services/test_specific_service.py --cov=app/services/spe
 ## Implementation Checklist for AI Agents
 
 ### ✅ Phase 1: Setup
-- [ ] Configure coverage exclusions in pyproject.toml
+- [ ] Configure coverage exclusions in pyproject.toml (exclude scripts, grpc, migrations if present)
 - [ ] Set up pytest configuration with proper flags
 - [ ] Verify test discovery paths
 - [ ] Configure async testing support
+
+### ✅ Phase 1.5: Test Directory Organization
+- [ ] Analyze app/ directory structure
+- [ ] Create tests/ directory structure mirroring app/ (excluding excluded directories)
+- [ ] Create appropriate subdirectories: api/, core/, db/, models/, services/, utils/, etc.
+- [ ] Add `__init__.py` files to all test directories
+- [ ] Create feature-specific directories: features/, integration/, migrations/ (if needed)
+- [ ] Organize existing test files into appropriate directories
 
 ### ✅ Phase 2: Test Foundation
 - [ ] Create comprehensive fixtures for all models

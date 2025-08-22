@@ -45,21 +45,23 @@ find app -name "*.py" | grep -E "(service|function)" | head -10
 [tool.coverage.run]
 source = ["app"]
 omit = [
-    "app/scripts/*",
-    "app/grpc/*_pb2.py", 
-    "app/grpc/*_pb2_grpc.py",
-    "tests/*",
-    "*/__pycache__/*",
-    "*.pyc",
+    "app/scripts/*",           # Exclude utility scripts
+    "app/grpc/*_pb2.py",       # Exclude generated protobuf files
+    "app/grpc/*_pb2_grpc.py",  # Exclude generated gRPC files
+    "tests/*",                 # Exclude test files themselves
+    "*/migrations/*",          # Exclude migration files
+    "*/__pycache__/*",         # Exclude cache files
+    "*.pyc",                   # Exclude compiled files
 ]
 
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
-    "raise AssertionError", 
+    "raise AssertionError",
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
 ]
 ```
 
@@ -71,9 +73,56 @@ python_files = ["test_*.py"]
 addopts = "-v --cov=app --cov-report=term-missing"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+norecursedirs = ["app/scripts", "app/grpc", ".git", ".tox", "dist", "build", "*.egg"]
 ```
 
 **Validation:** Run `poetry run pytest --version` to confirm configuration
+
+### STEP 2.5: Organize Test Directory Structure
+
+**2.5.1 Analyze app/ directory structure:**
+```bash
+# Check existing app structure
+find app -type d -name "*" | head -20
+ls -la app/
+```
+
+**2.5.2 Create organized test directory structure:**
+```bash
+# Create test directories mirroring app/ structure (exclude omitted directories)
+mkdir -p tests/api tests/core tests/db tests/models tests/services tests/utils
+mkdir -p tests/features tests/integration tests/migrations
+mkdir -p tests/utils/cache tests/utils/constants tests/utils/helpers tests/utils/kafka
+
+# Add __init__.py files for proper Python package structure
+touch tests/api/__init__.py tests/core/__init__.py tests/db/__init__.py
+touch tests/models/__init__.py tests/services/__init__.py tests/utils/__init__.py
+touch tests/features/__init__.py tests/integration/__init__.py tests/migrations/__init__.py
+touch tests/utils/cache/__init__.py tests/utils/constants/__init__.py
+touch tests/utils/helpers/__init__.py tests/utils/kafka/__init__.py
+```
+
+**2.5.3 Organize existing test files:**
+```bash
+# Move existing test files to appropriate directories based on functionality
+# Example moves (adjust based on actual file content):
+# mv tests/test_agent_service.py tests/services/test_agent_service.py
+# mv tests/test_agent_model.py tests/models/test_agent.py
+# mv tests/test_kafka_client.py tests/utils/kafka/test_kafka_client.py
+```
+
+**Directory Organization Guidelines:**
+- **tests/services/**: For app/services/ functionality
+- **tests/models/**: For app/models/ functionality
+- **tests/utils/**: For app/utils/ functionality (with subdirectories)
+- **tests/core/**: For app/core/ functionality
+- **tests/db/**: For app/db/ functionality
+- **tests/api/**: For app/api/ functionality
+- **tests/features/**: For feature-specific tests
+- **tests/integration/**: For integration tests
+- **tests/migrations/**: For migration tests (if needed)
+
+**Validation:** Run `poetry run pytest --collect-only` to verify test discovery
 
 ### STEP 3: Fix Existing Failing Tests
 
